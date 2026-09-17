@@ -13,12 +13,13 @@ Only content today: `solicitud/solicitud.sql` — full DDL dump of the productio
 `.codegraph/` exists but indexes **0 files** (SQL is unsupported). `codegraph explore` returns
 "No relevant code found" for everything here — use `rg` + Read directly.
 
-## Contents of `solicitud/solicitud.sql` (~4010 lines)
-- 115 `CREATE TABLE`, 49 views, 1 stored procedure (`sp_poblar_valores`), 126 FKs, all engines `InnoDB`.
-- Table naming: `cat_*` catalogs, `ctl_*` control/state, `tbl_*` transactional, `tmp_*` one-off scratch
-  (e.g. `tmp_corrige_producto`), `*_bkp` backups (e.g. `tbl_workflow_bkp`).
+## Contents of `solicitud/solicitud.sql` (~2420 lines)
+- 113 `CREATE TABLE`, 49 views, 1 stored procedure (`sp_poblar_valores`), 125 FKs, all engines `InnoDB`.
+- Table naming: `cat_*` catalogs, `ctl_*` control/state, `tbl_*` transactional, `catalogo_*` two legacy catalogs.
 - Views are `vw_*`, almost entirely analytics dashboards (`vw_tablero_*`, `vw_analisis_*`) over
   `tbl_estatus_solicitud_hist`; plus `tbl_workflow_vw`.
+- The file was **cleaned** (see below): the original dump's `*_bkp` backup table (`tbl_workflow_bkp`) and
+  `tmp_*` scratch table (`tmp_corrige_producto`) were removed, along with other dump noise.
 
 ## Domain model (originación + dictaminación)
 - `tbl_solicitud` is the hub (34 FKs reference it); `tbl_prospecto` is the applicant.
@@ -37,8 +38,15 @@ Only content today: `solicitud/solicitud.sql` — full DDL dump of the productio
   `longtext` columns. Naive SQL parsers/linters may choke.
 - `sp_poblar_valores` is delimited with `DELIMITER ;; ... DELIMITER ;` — statement splitters that only honor `;` break on it.
 - Dump was taken with `FOREIGN_KEY_CHECKS=0`, `UNIQUE_CHECKS=0`, `SQL_MODE='NO_AUTO_VALUE_ON_ZERO'`.
-- Charset `utf8mb4`; collation `utf8mb4_unicode_ci` except 11 `utf8mb4_general_ci` tables; JSON/binary columns use `utf8mb4_bin`.
-- 106 tables carry live `AUTO_INCREMENT=` values (real production sequence positions).
+- Charset `utf8mb4`; collation `utf8mb4_unicode_ci` except 10 `utf8mb4_general_ci` tables; JSON/binary columns use `utf8mb4_bin`.
+- 105 tables carry live `AUTO_INCREMENT=` values (real production sequence positions).
+
+## Cleanup applied to the dump
+Stripped as noise, keeping the file importable: `DEFINER=\`admin\`@\`%\`` clauses, per-object
+session-variable boilerplate, generated stub view blocks, `COMMENT='string'` placeholders, and
+`KEY \`pk\`` indexes that duplicated the primary key. The 49 view definitions were **topologically
+reordered** so the file imports in a single pass — the raw mariadb dump did not (it failed on
+view-order and missing-definer errors). Verified by importing into MariaDB: 0 errors.
 
 ## Git
-Branch `main`, no commits yet. Remote: `github.com:Lmex89vexi/database-originacion-dictaminacion`.
+Branch `main` (initial commit pushed). Remote: `github.com:Lmex89vexi/database-originacion-dictaminacion`.

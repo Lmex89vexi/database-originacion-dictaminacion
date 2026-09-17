@@ -1,0 +1,26 @@
+# CodeGraph local index/daemon data (machine-specific, regenerate with `codegraph init`)
+.codegraph/
+
+# Secrets / credentials — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+
+# Data dumps (this repo tracks schema only, never row data)
+*.csv
+*.tsv
+*.dump
+*.sql.gz
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/

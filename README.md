@@ -12,10 +12,10 @@ repo holds MariaDB/MySQL schema dumps, one SQL file per database/service.
 | --- | --- | --- |
 | `solicitud/solicitud.sql` | `vexi_originacion` | Full schema dump (production, AWS RDS, MariaDB 10.6.25) |
 
-`solicitud/solicitud.sql` (~4010 lines) contains **schema only** — no `INSERT`
+`solicitud/solicitud.sql` (~2420 lines) contains **schema only** — no `INSERT`
 data, no `CREATE DATABASE`, no `USE`, no `DROP TABLE`.
 
-- 115 `CREATE TABLE`, 49 views, 1 stored procedure (`sp_poblar_valores`), 126 foreign keys.
+- 113 `CREATE TABLE`, 49 views, 1 stored procedure (`sp_poblar_valores`), 125 foreign keys.
 - All tables `InnoDB`, charset `utf8mb4`.
 
 ## Importing
@@ -32,8 +32,7 @@ Importing into a non-empty schema collides with existing tables.
 
 ## Schema conventions
 
-- `cat_*` — catalogs; `ctl_*` — control/state; `tbl_*` — transactional tables;
-  `tmp_*` — one-off scratch tables; `*_bkp` — backups.
+- `cat_*` — catalogs; `ctl_*` — control/state; `tbl_*` — transactional tables.
 - `vw_*` — views, mostly analytics dashboards (`vw_tablero_*`, `vw_analisis_*`)
   over `tbl_estatus_solicitud_hist`; plus `tbl_workflow_vw`.
 
@@ -54,8 +53,13 @@ Importing into a non-empty schema collides with existing tables.
 - `sp_poblar_valores` uses `DELIMITER ;; ... DELIMITER ;`, so splitters that only
   honor `;` break on it.
 - Dumped with `FOREIGN_KEY_CHECKS=0`, `UNIQUE_CHECKS=0`, `SQL_MODE='NO_AUTO_VALUE_ON_ZERO'`.
-- Collation `utf8mb4_unicode_ci` except 11 tables using `utf8mb4_general_ci`;
+- Collation `utf8mb4_unicode_ci` except 10 tables using `utf8mb4_general_ci`;
   JSON/binary columns use `utf8mb4_bin`.
-- 106 tables carry live `AUTO_INCREMENT=` values (production sequence positions).
+- 105 tables carry live `AUTO_INCREMENT=` values (production sequence positions).
+- The dump was cleaned for reference use: `DEFINER` clauses, per-object session
+  boilerplate, generated stub view blocks, `COMMENT='string'` placeholders, backup
+  (`*_bkp`) / scratch (`tmp_*`) tables, and `KEY pk` indexes duplicating the primary
+  key were removed. The 49 views are topologically ordered so the file imports in a
+  single pass (the raw mariadb dump did not).
 
 See `AGENTS.md` for agent-oriented notes.
